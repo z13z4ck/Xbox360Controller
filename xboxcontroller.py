@@ -1,24 +1,24 @@
 import inputs
 import time
 from inputs import devices
-devices.gamepads
+import socket
 from inputs import get_gamepad
 
 
-def mapFromTo(x,a,b,c,d):
+def mapFromTo(x, a, b, c, d):
     """
         x:input value; 
         a,b:input range
         c,d:output range
         y:return interger value
     """
-    y=(x-a)/(b-a)*(d-c)+c
+    y = (x-a)/(b-a)*(d-c)+c
     return int(y)
 
 
 class ControllerSocket:
     def __init__(self):
-        self.host = '192.168.0.165'
+        self.host = '192.168.0.110'
         self.port = 5050
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((self.host, self.port))
@@ -40,24 +40,27 @@ class JoyStick:
     def runjoystick(self):
         while True:
             try:
+                time.sleep(0.01)
                 events = get_gamepad()
                 for event in events:
                     # print(event.ev_type + '---' + event.code + '---' + str(event.state) + '\n')
                     
                     if event.code == 'ABS_X':
-                        _val = mapFromTo(event.state,-32768,32768,-100,100)
-                        self.parsestering = _val
-                        
-                        
+                        # _val = mapFromTo(event.state,-32768,32768,-100,100)
+                        # self.parsestering = _val
+                        self.parsestering = event.state
+
+
                     if event.code == 'ABS_RZ':
-                        _val = mapFromTo(event.state,-255,255,-100,100)
-                        self.parsethrottle = _val
+                        # _val = mapFromTo(event.state,-255,255,-100,100)
+                        # self.parsethrottle = _val
+                        self.parsethrottle = event.state
                     
                     # print ("Throttle = %d" % self.parsethrottle + "\tSteering = %d \n" % self.parsestering)
-                    _control.send_data(b'collect, ' + str(int(self.parsethrottle)).encode() + b', ' + str(int(self.parsestering)).encode())
+                    self._control.send_data(b'collect, ' + str(int(self.parsethrottle)).encode() + b', ' + str(int(self.parsestering)).encode())
             except KeyboardInterrupt:
                 print("[!] Exiting..!")
-                _control.socket_close()
+                self._control.socket_close()
                 exit()
         
 
